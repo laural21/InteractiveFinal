@@ -6,8 +6,7 @@ var timer = 1800;
 // List and variables of the animal heads
 var animals = [];
 var a1, a2, a3, a4;
-var randomAnimal;
-
+var randomAnimal, targetAnimal;
 
 // wanderer array
 var theWanderers = [];
@@ -34,9 +33,9 @@ function preload(){
   a2 = loadImage("images/fox.png");
   a3 = loadImage("images/gorilla.png");
   a4 = loadImage("images/raccoon.png");
-  win = loadSound();
-  lose = loadSound();
-  countdown = loadSound();
+  //win = loadSound();
+  //lose = loadSound();
+  countdown = loadSound("countdown.ogg");
 }
 
 function setup() {
@@ -70,20 +69,19 @@ function setup() {
   animals.push(a2);
   animals.push(a3);
   animals.push(a4);
-
+  targetAnimal = getRandom();
   currentFaces = world.getRawFacePositions();
-  for (var i = 0; i < currentFacePositions.length; i++) {
+  for (var i = 0; i < currentFaces.length; i++) {
     faces.push(new Face());
   }
 }
 
 function getRandom(){
-  return animals[random(4)];
+  return random(animals);
 }
 
-var targetAnimal = getRandom();
 
-if mouseClicked(){
+function mouseClicked(){
   for(var i = 0; i < faces.length; i++){
     if(dist(mouseX, mouseY, faces[i].xPos, faces[i].yPos) < 5){
       face.animal = getRandom();
@@ -102,12 +100,11 @@ function checkForWin(){
 
 function draw() {
   world.clearDrawingCanvas();
-  stroke(0,255,0);
+  noStroke();
   fill(25, 16, 8, 10); // Color filter over the world
   rect(0,0,width,height); 
   
   stroke(0);
-  text(world.video.style.height, 25, 25);
 
   // Only change timer every second (every 60 frames)
   var nextTimer = timer--;
@@ -119,7 +116,8 @@ function draw() {
   text(timer/60, 10, 10);
   
   // Display the target animal
-  image(targetAnimal, 10, height-10, 30, 30);
+  imageMode(CENTER);
+  image(targetAnimal, 40, height-20, 40, 40);
   
   for (var i = 0; i < currentFaces.length; i++) {
     image(faces[i].animal, currentFaces[i].x, currentFaces[i].y, currentFaces[i].width, currentFaces[i].height);
@@ -127,7 +125,7 @@ function draw() {
 
   
   if(timer > 0 && checkForWin() == true){
-      win.play();
+      //win.play();
       // write separate function for image slicing and do it here
       // move the origin point of the screen so we can center everything
       push();
@@ -142,7 +140,7 @@ function draw() {
       pop();
 
   } else if (timer == 0){
-    lose.play();
+    //lose.play();
   }
 
   if(timer == 10){
