@@ -1,7 +1,8 @@
 var world;
 
-// Timer variable, the user has 30 seconds (1800 frames) to play
-var timer = 1800;
+// store counter numbers
+var counter = 8;
+var counterInSeconds = 30;
 
 // List and variables of the animal heads
 var animals = [];
@@ -16,7 +17,7 @@ var countdown;
 var win;
 var lose;
 
-// 
+//
 var faces = [];
 var currentFaces;
 
@@ -35,7 +36,7 @@ function preload(){
   a4 = loadImage("images/raccoon.png");
   //win = loadSound();
   //lose = loadSound();
-  countdown = loadSound("countdown.ogg");
+  //countdown = loadSound("sounds/countdown.ogg");
 }
 
 function setup() {
@@ -48,8 +49,8 @@ function setup() {
   // we will send those strips into a bunch of 'Wanderer' objects
   // and have them move around the world randomly
   for (var i = 0; i < animals.length ; i++) {
-    for (var x = 0; x < artwork.width; x += 10) {
-      for (var y = 0; y < artwork.height; y += 10) {
+    for (var x = 0; x < a1.width; x += 10) {
+      for (var y = 0; y < a1.height; y += 10) {
         // cut out a strip
         var strip = new p5.Image(10, 10);
         strip.copy("a" + i, x, y, 10, 10, 0, 0, 10, 10);
@@ -102,29 +103,26 @@ function draw() {
   world.clearDrawingCanvas();
   noStroke();
   fill(25, 16, 8, 10); // Color filter over the world
-  rect(0,0,width,height); 
-  
+  rect(0,0,width,height);
+
   stroke(0);
 
-  // Only change timer every second (every 60 frames)
-  var nextTimer = timer--;
-  if(nextTimer%60 == 0){
-    timer == nextTimer;
-  }
 
   fill(255);
-  text(timer/60, 10, 10);
-  
+  text(counterInSeconds, 10, 10);
+
   // Display the target animal
   imageMode(CENTER);
   image(targetAnimal, 40, height-20, 40, 40);
-  
+
   for (var i = 0; i < currentFaces.length; i++) {
     image(faces[i].animal, currentFaces[i].x, currentFaces[i].y, currentFaces[i].width, currentFaces[i].height);
   }
 
-  
-  if(timer > 0 && checkForWin() == true){
+  countdown();
+
+
+  if(counterInSeconds > 0 && checkForWin() == true){
       //win.play();
       // write separate function for image slicing and do it here
       // move the origin point of the screen so we can center everything
@@ -139,12 +137,23 @@ function draw() {
       // restore the origin point
       pop();
 
-  } else if (timer == 0){
+  } else if (counterInSeconds  == 0){
     //lose.play();
   }
 
-  if(timer == 10){
-    countdown.play();
+  if(counterInSeconds == 10){
+    //countdown.play();
+  }
+
+  console.log(currentFaces);
+}
+
+// countdown function
+function countdown() {
+  counter -- ;
+  if (counter == 0) {
+    counterInSeconds -= 1;
+    counter = 8;
   }
 }
 
@@ -195,7 +204,7 @@ function Wanderer(x, y, myImage) {
 function World(facingMode, w, h) {
   this.w = w;
   this.h = h;
-  
+
   // create video
   this.video = document.createElement('video');
   this.video.style.width = w+'px';
@@ -231,11 +240,11 @@ function World(facingMode, w, h) {
   // set up face position array
   this.facePositions = [];
   this.rawFacePositions = [];
-  
+
   this.tracker.on('track', function(event) {
     _this.rawFacePositions = [];
   });
-  
+
   this.FaceRecord = function(x,y,w,h) {
     this.x = x;
     this.y = y;
