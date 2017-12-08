@@ -79,7 +79,7 @@ function getRandom(){
 
 function mouseClicked(){
   for(var i = 0; i < faces.length; i++){
-    if(dist(mouseX, mouseY, faces[i].xPos, faces[i].yPos) < 20){
+    if(dist(mouseX, mouseY, faces[i].xPos, faces[i].yPos) < 60){
       faces[i].animal = getRandom();
     }
   }
