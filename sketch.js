@@ -34,8 +34,8 @@ function preload(){
   a2 = loadImage("images/fox.png");
   a3 = loadImage("images/gorilla.png");
   a4 = loadImage("images/raccoon.png");
-  //win = loadSound();
-  //lose = loadSound();
+  win = loadSound("sounds/win.mp3");
+  lose = loadSound("sounds/lose.mp3");
   countdown = loadSound("sounds/countdown.ogg");
 }
 
@@ -135,7 +135,7 @@ function draw() {
   decreaseTime();
 
   if(counterInSeconds > 0 && checkForWin() == true){
-      //win.play();
+      win.play();
       // write separate function for image slicing and do it here
       // move the origin point of the screen so we can center everything
       push();
@@ -150,11 +150,11 @@ function draw() {
       pop();
 
   } else if (counterInSeconds  == 0){
-    //lose.play();
+    lose.play();
   }
 
   if(counterInSeconds == 10){
-    //countdown.play();
+    countdown.play();
   }
 
 }
