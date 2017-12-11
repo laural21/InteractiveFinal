@@ -135,6 +135,7 @@ function draw() {
   decreaseTime();
 
   if(counterInSeconds > 0 && checkForWin() == true){
+  	  countdown.pause();
       win.play();
       // write separate function for image slicing and do it here
       // move the origin point of the screen so we can center everything
@@ -155,6 +156,9 @@ function draw() {
 
   if(counterInSeconds == 10){
     countdown.play();
+  }
+  if(counterInSeconds == 0){
+  	countdown.pause();
   }
 
 }
