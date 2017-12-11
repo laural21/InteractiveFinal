@@ -10,6 +10,7 @@ var fallingAnimals = [];
 var a1, a2, a3, a4;
 var randomAnimal, targetAnimal;
 
+
 // Variables for sounds
 var countdown;
 var win;
@@ -62,8 +63,8 @@ function setup() {
   targetAnimal = getRandom();
 
   // create our falling animal objects
-  for (var i = 0; i < 25; i++) {
-    fallingAnimals.push( new Animal(random(animals), random(20, 80)));
+  for (var i = 0; i < 20; i++) {
+    fallingAnimals.push( new Animal(random(animals), random(50, 100)));
   }
 }
 
@@ -136,7 +137,7 @@ function draw() {
 
 
   // did the user win?
-  if (counterInSeconds == 0 && checkForWin() == true) {
+  if (counterInSeconds < 30 && checkForWin() == true) {
 
     // draw our falling animals
     for (var i = 0; i < fallingAnimals.length; i++) {
