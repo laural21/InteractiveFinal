@@ -6,11 +6,9 @@ var counterInSeconds = 30;
 
 // List and variables of the animal heads
 var animals = [];
+var fallingAnimals = [];
 var a1, a2, a3, a4;
 var randomAnimal, targetAnimal;
-
-// wanderer array
-var theWanderers = [];
 
 // Variables for sounds
 var countdown;
@@ -20,6 +18,10 @@ var lose;
 //
 var faces = [];
 var currentFaces = [];
+
+var soundOn;
+var countdownOn;
+var gameOn;
 
 // Depending on how many faces are detected, create Face objects and add them to faces[]
 function Face(x, y){
@@ -45,32 +47,24 @@ function setup() {
   noFill();
   stroke(255);
   strokeWeight(1);
+
+  soundOn = false;
+  gameOn = true;
+  countdownOn = false;
+
   // randomize perlin noise landscape
   noiseDetail(24);
 
-  // slice up our image into a series of smaller strips
-  // we will send those strips into a bunch of 'Wanderer' objects
-  // and have them move around the world randomly
-  for (var i = 0; i < animals.length ; i++) {
-    for (var x = 0; x < a1.width; x += 10) {
-      for (var y = 0; y < a1.height; y += 10) {
-        // cut out a strip
-        var strip = new p5.Image(10, 10);
-        strip.copy("a" + i, x, y, 10, 10, 0, 0, 10, 10);
-
-        // construct a new wanderer
-        var tempWanderer = new Wanderer(x, y, strip);
-
-        // add the wanderer to our array
-        theWanderers.push(tempWanderer);
-      }
-    }
-  }
   animals.push(a1);
   animals.push(a2);
   animals.push(a3);
   animals.push(a4);
   targetAnimal = getRandom();
+
+  // create our falling animal objects
+  for (var i = 0; i < 25; i++) {
+    fallingAnimals.push( new Animal(random(animals), random(20, 80)));
+  }
 }
 
 function getRandom(){
@@ -93,6 +87,7 @@ function checkForWin(){
   }
   return true;
 }
+
 // countdown function
 function decreaseTime() {
   counter -- ;
@@ -104,105 +99,91 @@ function decreaseTime() {
 
 function draw() {
   world.clearDrawingCanvas();
-  noStroke();
-  fill(25, 16, 8, 10); // Color filter over the world
-  rect(0,0,width,height);
 
+  // only track faces if the game is "on"
+  if (gameOn == true) {
+    noStroke();
+    fill(25, 16, 8, 10); // Color filter over the world
+    rect(0,0,width,height);
+
+    currentFaces = world.getRawFacePositions();
+    while (faces.length < currentFaces.length){
+    	for (var i = 0; i < currentFaces.length; i++) {
+      faces.push(new Face(currentFaces[i].x, currentFaces[i].y));
+    	}
+    }
+
+    // display animal face on every person's face
+    imageMode(CORNER);
+    for (var i = 0; i < currentFaces.length; i++) {
+      image(faces[i].animal, currentFaces[i].x, currentFaces[i].y, currentFaces[i].width + 50, currentFaces[i].height + 50);
+    }
+
+    decreaseTime();
+  }
+
+  // show timer
   fill(255);
   if (counterInSeconds >= 0){
-  	text(counterInSeconds, 30, 30);
+    text(counterInSeconds, 30, 30);
   } else {
-  	text("0", 30, 30);
-  }
-  
-
-  currentFaces = world.getRawFacePositions();
-  while (faces.length < currentFaces.length){
-  	for (var i = 0; i < currentFaces.length; i++) {
-    faces.push(new Face(currentFaces[i].x, currentFaces[i].y));
-  	}
+    text("0", 30, 30);
   }
 
   // Display the target animal
   imageMode(CENTER);
   image(targetAnimal, 40, height-20, 40, 40);
 
-  imageMode(CORNER);
-  for (var i = 0; i < currentFaces.length; i++) {
-    image(faces[i].animal, currentFaces[i].x, currentFaces[i].y, currentFaces[i].width + 50, currentFaces[i].height + 50);
+
+  // did the user win?
+  if (counterInSeconds == 0 && checkForWin() == true) {
+
+    // draw our falling animals
+    for (var i = 0; i < fallingAnimals.length; i++) {
+      fallingAnimals[i].drawAndMove();
+    }
+
+    if (soundOn == false) {
+      soundOn = true;
+      gameOn = false;
+      win.play();
+    }
   }
 
-  decreaseTime();
-
-  if(counterInSeconds > 0 && checkForWin() == true){
-  	  countdown.pause();
-      win.play();
-      // write separate function for image slicing and do it here
-      // move the origin point of the screen so we can center everything
-      push();
-      translate(150, 100);
-
-      // display all wanderers
-      for (var i = 0; i < theWanderers.length; i++) {
-        theWanderers[i].displayAndMove();
-      }
-
-      // restore the origin point
-      pop();
-
-  } else if (counterInSeconds  == 0){
+  // did the user lose?
+  else if (counterInSeconds == 0 && soundOn == false){
+    soundOn = true;
     lose.play();
   }
 
-  if(counterInSeconds == 10){
+  // start countdown
+  if (counterInSeconds == 10 && countdownOn == false){
+    countdownOn = true;
     countdown.play();
   }
-  if(counterInSeconds == 0){
-  	countdown.pause();
-  }
 
 }
 
-function Wanderer(x, y, myImage) {
-  // store our initial position
-  this.x = x;
-  this.y = y;
+// falling animal object
+function Animal(randomAnimal, size) {
+  // pick a random spot to fall from
+  this.x = random(width);
+  this.y = random(-350, 0);
 
-  // also store our "desired" position
-  this.desiredX = x;
-  this.desiredY = y;
+  // perlin noise offest
+  this.noiseOffset = random(1000);
 
-  // store our image
-  this.myImage = myImage;
+  // draw and move
+  this.drawAndMove = function() {
+    this.y += 10;
+    this.x += map(noise(this.noiseOffset), 0, 1, -1, 1);
+    this.noiseOffset += 0.01;
 
-  // perlin noise offset
-  this.xOffset = random(1000);
-  this.yOffset = random(2000, 3000);
-
-  // display and move function
-  this.displayAndMove = function() {
-    // if the mouse is not pressed we should wander using perlin noise
-    if (!mouseIsPressed) {
-      this.x += map(noise(this.xOffset), 0, 1, -1, 1);
-      this.y += map(noise(this.yOffset), 0, 1, -1, 1);
-      this.xOffset += 0.01;
-      this.yOffset += 0.01;
-    }
-    // if the mouse isn't pressed we should try and move back to our desired spot
-    else {
-      // compute x & y distance
-      var xDist = this.desiredX - this.x;
-      var yDist = this.desiredY - this.y;
-
-      // move a little bit
-      this.x += xDist * 0.05;
-      this.y += yDist * 0.05;
-    }
-
-    // display ourselves
-    image(this.myImage, this.x, this.y);
+    imageMode(CENTER);
+    image(randomAnimal, this.x, this.y, size, size);
   }
 }
+
 
 
 // hacked together code to make this work with p5 below - no need to change this
