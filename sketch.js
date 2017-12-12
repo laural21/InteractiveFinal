@@ -10,19 +10,22 @@ var fallingAnimals = [];
 var a1, a2, a3, a4;
 var randomAnimal, targetAnimal;
 
-
 // Variables for sounds
 var countdown;
 var win;
 var lose;
 
-//
+// face arrays
 var faces = [];
 var currentFaces = [];
 
+// game controls
 var soundOn;
 var countdownOn;
 var gameOn;
+
+// an array to hold our noise walkers
+var walkerArray;
 
 // Depending on how many faces are detected, create Face objects and add them to faces[]
 function Face(x, y){
@@ -40,11 +43,15 @@ function preload(){
   win = loadSound("sounds/win.mp3");
   lose = loadSound("sounds/lose.mp3");
   countdown = loadSound("sounds/countdown.ogg");
+  song = loadSound("sounds/song.mp3");
 }
 
 function setup() {
   world = new World('front', 640, 480); // 'front' or 'user' - sets camera preference
+  createCanvas(655, 495);
+  song.play();
 
+  textFont("Comic Sans MS");
   noFill();
   stroke(255);
   strokeWeight(1);
@@ -55,6 +62,17 @@ function setup() {
 
   // randomize perlin noise landscape
   noiseDetail(24);
+
+  // create our walker array
+  walkerArray = [];
+
+  // loop 100 times
+  for (var i = 0; i < 100; i++) {
+    // create a NoiseWalker
+    var tempWalker = new NoiseWalker( random(width), random(height) );
+    // put the walker into the array
+    walkerArray.push( tempWalker );
+  }
 
   animals.push(a1);
   animals.push(a2);
@@ -94,9 +112,10 @@ function decreaseTime() {
   counter -- ;
   if (counter == 0) {
     counterInSeconds -= 1;
-    counter = 8;
+    counter = 5;
   }
 }
+
 
 function draw() {
   world.clearDrawingCanvas();
@@ -104,8 +123,15 @@ function draw() {
   // only track faces if the game is "on"
   if (gameOn == true) {
     noStroke();
-    fill(25, 16, 8, 10); // Color filter over the world
-    rect(0,0,width,height);
+    fill(0, 0, 255, 70); // Color filter over the world
+    rect(10,10,width, height);
+
+    // visit each walker
+    for (var i = 0; i < walkerArray.length; i++) {
+      // ask the walker to move and display
+      walkerArray[i].move();
+      walkerArray[i].display();
+    }
 
     currentFaces = world.getRawFacePositions();
     while (faces.length < currentFaces.length){
@@ -125,19 +151,23 @@ function draw() {
 
   // show timer
   fill(255);
+  textSize(40);
   if (counterInSeconds >= 0){
-    text(counterInSeconds, 30, 30);
+    text(counterInSeconds, 30, 60);
   } else {
-    text("0", 30, 30);
+    text("0", 30, 60);
   }
 
   // Display the target animal
   imageMode(CENTER);
-  image(targetAnimal, 40, height-20, 40, 40);
+  image(targetAnimal, 50, height-40, 50, 50);
 
 
   // did the user win?
-  if (counterInSeconds < 30 && checkForWin() == true) {
+  if (counterInSeconds < 29 && checkForWin() == true) {
+    fill(0);
+    textSize(75);
+    text("YOU WIN!", width/4.5, height/1.8);
 
     // draw our falling animals
     for (var i = 0; i < fallingAnimals.length; i++) {
@@ -148,13 +178,24 @@ function draw() {
       soundOn = true;
       gameOn = false;
       win.play();
+      song.stop();
     }
   }
 
   // did the user lose?
-  else if (counterInSeconds == 0 && soundOn == false){
-    soundOn = true;
-    lose.play();
+  else if (counterInSeconds <= 0){
+    fill(255, 0, 0, 95); // Color filter over the world
+    rect(10, 10, width, height);
+    fill(0);
+    textSize(75);
+    text("YOU LOSE.", width/4.5, height/1.8);
+
+    if (soundOn == false) {
+      song.stop();
+      soundOn = true;
+      gameOn = false;
+      lose.play();
+    }
   }
 
   // start countdown
@@ -185,6 +226,38 @@ function Animal(randomAnimal, size) {
   }
 }
 
+// our NoiseWalker class
+function NoiseWalker(x, y) {
+  // store our position
+  this.x = x;
+  this.y = y;
+
+  // create a "noise offset" to keep track of our position in Perlin Noise space
+  this.xNoiseOffset = random(0,1000);
+  this.yNoiseOffset = random(1000,2000);
+
+  // display mechanics
+  this.display = function() {
+    fill(255, 255, 255, 50);
+    ellipse(this.x, this.y, 15, 15);
+  }
+
+  // movement mechanics
+  this.move = function() {
+    // compute how much we should move
+    var xMovement = map( noise(this.xNoiseOffset), 0, 1, -1, 1 );
+    var yMovement = map( noise(this.yNoiseOffset), 0, 1, -1, 1 );
+
+    // update our position
+    this.x += xMovement;
+    this.y += yMovement;
+
+    // update our noise offset values
+    this.xNoiseOffset += 0.01;
+    this.yNoiseOffset += 0.01;
+  }
+}
+
 
 
 // hacked together code to make this work with p5 below - no need to change this
@@ -197,7 +270,7 @@ function World(facingMode, w, h) {
   this.video = document.createElement('video');
   this.video.style.width = w+'px';
   this.video.style.height = h+'px';
-  this.video.style.border = '5px solid red';
+  this.video.style.border = '5px solid black';
   this.video.setAttribute('id', 'video');
   this.video.setAttribute('autoplay', '');
   this.video.setAttribute('muted', '');
