@@ -166,7 +166,7 @@ function draw() {
 
 
   // did the user win?
-  if (counterInSeconds < 29 && checkForWin() == true) {
+  if (counterInSeconds < 25 && checkForWin() == true) {
     fill(0);
     textSize(75);
     text("YOU WIN!", width/4.5, height/1.8);
