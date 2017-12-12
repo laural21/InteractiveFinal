@@ -28,11 +28,12 @@ var gameOn;
 var walkerArray;
 
 // Depending on how many faces are detected, create Face objects and add them to faces[]
-function Face(x, y){
+function Face(x, y, width){
   this.index;
   this.animal = random(animals);
   this.xPos = x;
   this.yPos = y;
+  this.width = width + 50;
 }
 
 function preload(){
@@ -93,12 +94,11 @@ function getRandom(){
 function mouseClicked(){
   imageMode(CENTER);
   for(var i = 0; i < faces.length; i++){
-    if (checkCollision(faces[i].xPos, faces[i].yPos, faces[i].width, faces[i].height, mouseX, mouseY, mouseX.width, mouseY.height) ) {
+    if (mouseX > faces[i].xPos && mouseX < faces[i].xPos + faces[i].width && mouseY > faces[i].yPos && mouseY < faces[i].yPos + faces[i].width) {
       faces[i].animal = getRandom();
     }
   }
 }
-
 
 function checkForWin(){
   for(var i = 0; i < faces.length; i++){
@@ -138,7 +138,7 @@ function draw() {
     currentFaces = world.getRawFacePositions();
     while (faces.length < currentFaces.length){
     	for (var i = 0; i < currentFaces.length; i++) {
-      faces.push(new Face(currentFaces[i].x, currentFaces[i].y));
+      faces.push(new Face(currentFaces[i].x, currentFaces[i].y, currentFaces[i].width));
     	}
     }
 
@@ -334,32 +334,4 @@ function World(facingMode, w, h) {
   this.clearDrawingCanvas = function() {
     this.canvas.drawingContext.clearRect(0,0,800,600);
   }
-}
-
-// generic function to compute whether two rectangles interset with one another
-function checkCollision(x1, y1, w1, h1, x2, y2, w2, h2) {
-  // rectangle 1 is to the left of rectangle #2
-  if (x1+w1 < x2) {
-    console.log("LEFT");
-    return false;
-  }
-  // rectangle 1 is to the right of rectangle #2
-  if (x1 > x2+w2) {
-    console.log("RIGHT");
-    return false;
-  }
-  // rectangle 1 is above rectangle #2
-  if (y1+h1 < y2) {
-    console.log("ABOVE");
-    return false;
-  }
-  // rectangle 1 is below rectangle #2
-  if (y1 > y2+h2) {
-    console.log("BELOW");
-    return false;
-  }
-
-  // if we got here we failed all of the tests above - the rectangles
-  // must be intersecting
-  return true;
 }
